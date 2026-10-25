@@ -1,0 +1,51 @@
+{
+    "random_state": 42,
+    "test_size": 0.2,
+    "stratified": true,
+    "features": {
+        "numeric": [
+            "Age"
+        ],
+        "demographic": [
+            "Gender"
+        ],
+        "symptoms": [
+            "Polyuria",
+            "Polydipsia",
+            "sudden weight loss",
+            "weakness",
+            "Polyphagia",
+            "Genital thrush",
+            "visual blurring",
+            "Itching",
+            "Irritability",
+            "delayed healing",
+            "partial paresis",
+            "muscle stiffness",
+            "Alopecia",
+            "Obesity"
+        ],
+        "total_count": 16
+    },
+    "target": {
+        "name": "class",
+        "mapping": {
+            "Negative": 0,
+            "Positive": 1
+        }
+    },
+    "dataset_splits": {
+        "train": {
+            "total_samples": 416,
+            "positive_count": 256,
+            "negative_count": 160,
+            "positive_ratio": 0.6153846153846154
+        },
+        "test": {
+            "total_samples": 104,
+            "positive_count": 64,
+            "negative_count": 40,
+            "positive_ratio": 0.6153846153846154
+        }
+    }
+}
