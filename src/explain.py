@@ -133,15 +133,87 @@ class ClinicalSHAPExplainer:
 
         return explanation, attribution_summary
 
+    def _render_custom_waterfall(
+        self, explanation: shap.Explanation, title: str = "Patient Risk Factor Decomposition", max_display: int = 10
+    ) -> plt.Figure:
+        """
+        Robust, publication-grade patient-level attribution waterfall plot.
+        Eliminates headless Linux/Streamlit Cloud IndexError bugs in shap.plots.waterfall.
+        """
+        fig, ax = plt.subplots(figsize=(9, 5.5), dpi=200)
+
+        feature_names = list(explanation.feature_names) if explanation.feature_names is not None else self.feature_names
+        shap_vals = np.array(explanation.values)
+        data_vals = explanation.data if hasattr(explanation, "data") and explanation.data is not None else [None] * len(shap_vals)
+
+        # Sort by absolute magnitude
+        indices = np.argsort(np.abs(shap_vals))[::-1][:max_display]
+        # Invert order for horizontal plot so top feature is at the top
+        indices = indices[::-1]
+
+        y_labels = []
+        plot_vals = []
+        colors = []
+
+        for idx in indices:
+            feat = feature_names[idx]
+            val = float(shap_vals[idx])
+            d_val = data_vals[idx] if idx < len(data_vals) else None
+            val_str = f" = {d_val}" if d_val is not None else ""
+            y_labels.append(f"{feat}{val_str}")
+            plot_vals.append(val)
+            colors.append("#d95f02" if val > 0 else "#2b5c8f")
+
+        y_pos = np.arange(len(plot_vals))
+        bars = ax.barh(y_pos, plot_vals, color=colors, height=0.55, edgecolor="#333", linewidth=0.8, alpha=0.9)
+
+        ax.set_yticks(y_pos)
+        ax.set_yticklabels(y_labels, fontsize=10, fontweight="bold")
+        ax.axvline(0, color="#666666", linestyle="--", linewidth=1.2, alpha=0.7)
+        ax.set_xlabel("SHAP Impact on Model Margin (Log-Odds)", fontsize=11, labelpad=8)
+        ax.set_title(title, fontsize=12, fontweight="bold", pad=12)
+        ax.grid(axis="x", linestyle="--", alpha=0.5)
+
+        # Annotate exact SHAP delta on bars
+        max_abs = max(abs(min(plot_vals)), abs(max(plot_vals))) if plot_vals else 1.0
+        padding = max(max_abs * 0.04, 0.08)
+
+        for bar in bars:
+            w = bar.get_width()
+            y = bar.get_y() + bar.get_height() / 2
+            sign = "+" if w > 0 else ""
+            offset = padding if w >= 0 else -padding
+            ha = "left" if w >= 0 else "right"
+            ax.text(w + offset, y, f"{sign}{w:.2f}", va="center", ha=ha, fontsize=9, fontweight="bold", color="#222")
+
+        base_val = float(explanation.base_values)
+        final_margin = float(base_val + np.sum(shap_vals))
+        prob = float(1.0 / (1.0 + np.exp(-final_margin)))
+
+        # Subtitle showing baseline to final margin transition
+        ax.text(
+            0.5, -0.16,
+            f"Population Baseline Margin: {base_val:.2f}  →  Final Patient Margin: {final_margin:.2f} (Risk: {prob:.1%})",
+            transform=ax.transAxes, ha="center", fontsize=9.5, color="#475569", style="italic"
+        )
+
+        plt.tight_layout()
+        return fig
+
     def plot_waterfall(
         self, explanation: shap.Explanation, title: str = "Patient Risk Factor Decomposition", max_display: int = 10
     ) -> plt.Figure:
-        """Renders a clean Matplotlib figure of the SHAP waterfall plot."""
-        fig = plt.figure(figsize=(9, 6), dpi=300)
-        shap.plots.waterfall(explanation, max_display=max_display, show=False)
-        plt.title(title, fontsize=12, fontweight="bold", pad=15)
-        plt.tight_layout()
-        return fig
+        """Renders patient-level SHAP waterfall with cross-platform resilience."""
+        try:
+            fig = plt.figure(figsize=(9, 6), dpi=200)
+            shap.plots.waterfall(explanation, max_display=max_display, show=False)
+            plt.title(title, fontsize=12, fontweight="bold", pad=15)
+            plt.tight_layout()
+            return fig
+        except (IndexError, TypeError, AttributeError, ValueError, RuntimeError) as err:
+            logger.warning(f"Native shap.plots.waterfall raised {err}; utilizing robust custom renderer.")
+            plt.close()
+            return self._render_custom_waterfall(explanation, title=title, max_display=max_display)
 
 
 def generate_global_shap_figures(
