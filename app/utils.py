@@ -5,7 +5,7 @@ UI Utilities, Styling & Cached Artifact Loaders for Streamlit Clinical Applicati
 import json
 import sys
 from pathlib import Path
-from typing import Dict, Any, Tuple
+from typing import Any
 
 # Ensure project root is in sys.path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -25,7 +25,7 @@ PROCESSED_DATA_DIR = PROJECT_ROOT / "data" / "processed"
 
 
 @st.cache_resource(show_spinner="Loading predictive engine and explainability models...")
-def load_all_artifacts() -> Tuple[Any, Dict[str, Any], ClinicalSHAPExplainer, list]:
+def load_all_artifacts() -> tuple[Any, dict[str, Any], ClinicalSHAPExplainer, list]:
     """Loads and caches the calibrated model, metadata, SHAP explainer, and feature hierarchy."""
     model_path = MODELS_DIR / "best_model.joblib"
     meta_path = MODELS_DIR / "model_metadata.json"
@@ -49,7 +49,7 @@ def load_all_artifacts() -> Tuple[Any, Dict[str, Any], ClinicalSHAPExplainer, li
 
 
 @st.cache_data
-def load_benchmark_and_test_data() -> Tuple[pd.DataFrame, pd.DataFrame]:
+def load_benchmark_and_test_data() -> tuple[pd.DataFrame, pd.DataFrame]:
     """Loads the benchmark comparison CSV and holdout test set for exploration."""
     benchmark_path = MODELS_DIR / "benchmark_results.csv"
     test_path = PROCESSED_DATA_DIR / "test.csv"
@@ -60,7 +60,7 @@ def load_benchmark_and_test_data() -> Tuple[pd.DataFrame, pd.DataFrame]:
     return benchmark_df, test_df
 
 
-def categorize_risk(prob: float, threshold: float = 0.320) -> Tuple[str, str, str, str]:
+def categorize_risk(prob: float, threshold: float = 0.320) -> tuple[str, str, str, str]:
     """
     Categorizes calibrated risk probability into clinical triage tiers:
     Returns (Category, ColorHex, BadgeClass, ClinicalRecommendation)

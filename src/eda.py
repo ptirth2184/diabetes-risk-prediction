@@ -13,18 +13,18 @@ Computes:
 5. Automated statistical markdown report written to reports/eda_statistical_report.md
 """
 
-import os
 import sys
 from pathlib import Path
-from typing import Dict, Any, List, Tuple
+from typing import Any
+
+import matplotlib
 import numpy as np
 import pandas as pd
-import scipy.stats as stats
-import matplotlib
+from scipy import stats
+
 matplotlib.use("Agg")  # Non-interactive backend for headless execution
 import matplotlib.pyplot as plt
 import seaborn as sns
-
 
 # Configuration & Paths
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -86,7 +86,7 @@ def compute_cramers_v(contingency_table: np.ndarray) -> float:
     return float(np.sqrt(phi2_corr / denom))
 
 
-def compute_odds_ratio(contingency_table: pd.DataFrame) -> Tuple[float, float, float]:
+def compute_odds_ratio(contingency_table: pd.DataFrame) -> tuple[float, float, float]:
     """
     Computes Haldane-Anscombe corrected Odds Ratio and 95% Wald Confidence Interval.
     Table structure expected:
@@ -129,7 +129,7 @@ def run_categorical_hypothesis_tests(df: pd.DataFrame) -> pd.DataFrame:
             )
             feature_exposure_label = "Yes vs No"
 
-        chi2_stat, p_val, dof, _ = stats.chi2_contingency(cross_tab.values, correction=True)
+        chi2_stat, p_val, _dof, _ = stats.chi2_contingency(cross_tab.values, correction=True)
         cramers_v = compute_cramers_v(cross_tab.values)
         or_val, ci_lower, ci_upper = compute_odds_ratio(cross_tab)
 
@@ -163,7 +163,7 @@ def run_categorical_hypothesis_tests(df: pd.DataFrame) -> pd.DataFrame:
     return res_df
 
 
-def run_continuous_tests(df: pd.DataFrame) -> Dict[str, Any]:
+def run_continuous_tests(df: pd.DataFrame) -> dict[str, Any]:
     """Runs statistical significance tests on continuous variable 'Age'."""
     pos_age = df[df["class"] == "Positive"]["Age"]
     neg_age = df[df["class"] == "Negative"]["Age"]
@@ -227,7 +227,7 @@ def compute_interfeature_cramers_matrix(df: pd.DataFrame) -> pd.DataFrame:
 
 def plot_target_distribution(df: pd.DataFrame, output_dir: Path) -> Path:
     """Generates a clean bar plot for the target class distribution."""
-    fig, ax = plt.subplots(figsize=(6.5, 4.5), dpi=300)
+    _fig, ax = plt.subplots(figsize=(6.5, 4.5), dpi=300)
     counts = df["class"].value_counts()
     total = len(df)
     colors = ["#d95f02" if k == "Positive" else "#2b5c8f" for k in counts.index]
@@ -257,7 +257,7 @@ def plot_target_distribution(df: pd.DataFrame, output_dir: Path) -> Path:
 
 def plot_age_distribution(df: pd.DataFrame, output_dir: Path) -> Path:
     """Generates dual KDE and Boxplot comparison of Age across target classes."""
-    fig, (ax_box, ax_kde) = plt.subplots(2, 1, figsize=(8, 6.5), sharex=True, gridspec_kw={"height_ratios": [0.35, 0.65]}, dpi=300)
+    _fig, (ax_box, ax_kde) = plt.subplots(2, 1, figsize=(8, 6.5), sharex=True, gridspec_kw={"height_ratios": [0.35, 0.65]}, dpi=300)
 
     # Boxplot
     sns.boxplot(
@@ -301,7 +301,7 @@ def plot_symptom_prevalence(cat_res_df: pd.DataFrame, output_dir: Path) -> Path:
     y = np.arange(len(symptom_df))
     height = 0.38
 
-    fig, ax = plt.subplots(figsize=(9, 8), dpi=300)
+    _fig, ax = plt.subplots(figsize=(9, 8), dpi=300)
     bars_pos = ax.barh(y + height / 2, symptom_df["Pos_Prevalence_Pct"], height, label="Positive Cohort", color="#d95f02", edgecolor="#333", alpha=0.9)
     bars_neg = ax.barh(y - height / 2, symptom_df["Neg_Prevalence_Pct"], height, label="Negative Cohort", color="#2b5c8f", edgecolor="#333", alpha=0.9)
 
@@ -332,7 +332,7 @@ def plot_odds_ratios_forest(cat_res_df: pd.DataFrame, output_dir: Path) -> Path:
     """Generates a Forest Plot of Odds Ratios with 95% Confidence Intervals."""
     plot_df = cat_res_df.copy().sort_values(by="Odds_Ratio", ascending=True).reset_index(drop=True)
 
-    fig, ax = plt.subplots(figsize=(8.5, 7.5), dpi=300)
+    _fig, ax = plt.subplots(figsize=(8.5, 7.5), dpi=300)
     y_pos = np.arange(len(plot_df))
 
     # Error bars for CI
@@ -373,7 +373,7 @@ def plot_odds_ratios_forest(cat_res_df: pd.DataFrame, output_dir: Path) -> Path:
 
 def plot_cramers_v_heatmap(cramers_matrix: pd.DataFrame, output_dir: Path) -> Path:
     """Generates a correlation heatmap of Cramér's V associations."""
-    fig, ax = plt.subplots(figsize=(10, 8.5), dpi=300)
+    _fig, ax = plt.subplots(figsize=(10, 8.5), dpi=300)
     mask = np.triu(np.ones_like(cramers_matrix, dtype=bool), k=1)
 
     sns.heatmap(
@@ -397,7 +397,7 @@ def plot_cramers_v_heatmap(cramers_matrix: pd.DataFrame, output_dir: Path) -> Pa
 def generate_markdown_report(
     df: pd.DataFrame,
     cat_df: pd.DataFrame,
-    cont_results: Dict[str, Any],
+    cont_results: dict[str, Any],
     report_file: Path = REPORT_PATH
 ) -> Path:
     """Compiles a rigorous markdown statistical report with tables and clinical insights."""
@@ -459,9 +459,9 @@ We evaluated whether the age distribution differs significantly between diabetic
 
 ## 3. Bivariate Association & Epidemiological Risk Metrics (Categorical Features)
 
-All 15 categorical features were analyzed using **Pearson's $\chi^2$ Test of Independence**, **Cramér's $V$ effect size**, and **Haldane-Anscombe corrected Odds Ratios (OR)** with 95% Wald Confidence Intervals.
+All 15 categorical features were analyzed using **Pearson's $\\chi^2$ Test of Independence**, **Cramér's $V$ effect size**, and **Haldane-Anscombe corrected Odds Ratios (OR)** with 95% Wald Confidence Intervals.
 
-| Feature | Exposure Comparison | Positive Prev (%) | Negative Prev (%) | Odds Ratio (OR) | 95% Confidence Interval | Cramér's $V$ | $\chi^2$ Statistic | $p$-value |
+| Feature | Exposure Comparison | Positive Prev (%) | Negative Prev (%) | Odds Ratio (OR) | 95% Confidence Interval | Cramér's $V$ | $\\chi^2$ Statistic | $p$-value |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 """
     for _, row in cat_df.iterrows():
@@ -513,7 +513,7 @@ Pairwise associations between all binary features were computed using Cramér's 
     return report_file
 
 
-def run_eda_pipeline() -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, Any]]:
+def run_eda_pipeline() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, Any]]:
     """Orchestrates the complete Phase 3 EDA pipeline."""
     print("=" * 60)
     print("PHASE 3: EXPLORATORY DATA ANALYSIS & STATISTICAL VERIFICATION")
@@ -535,11 +535,11 @@ def run_eda_pipeline() -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, Any]]:
 
     print("[4/5] Computing pairwise association matrix & rendering figures...")
     cramers_matrix = compute_interfeature_cramers_matrix(df)
-    p1 = plot_target_distribution(df, FIGURES_DIR)
-    p2 = plot_age_distribution(df, FIGURES_DIR)
-    p3 = plot_symptom_prevalence(cat_df, FIGURES_DIR)
-    p4 = plot_odds_ratios_forest(cat_df, FIGURES_DIR)
-    p5 = plot_cramers_v_heatmap(cramers_matrix, FIGURES_DIR)
+    plot_target_distribution(df, FIGURES_DIR)
+    plot_age_distribution(df, FIGURES_DIR)
+    plot_symptom_prevalence(cat_df, FIGURES_DIR)
+    plot_odds_ratios_forest(cat_df, FIGURES_DIR)
+    plot_cramers_v_heatmap(cramers_matrix, FIGURES_DIR)
     print(f"[+] 5 figures saved to: {FIGURES_DIR}")
 
     print("[5/5] Generating comprehensive markdown report...")
@@ -555,7 +555,7 @@ def run_eda_pipeline() -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, Any]]:
 if __name__ == "__main__":
     try:
         run_eda_pipeline()
-    except Exception as e:
+    except (OSError, ValueError, RuntimeError) as e:
         print(f"[-] EDA pipeline failed: {e}", file=sys.stderr)
         import traceback
         traceback.print_exc()

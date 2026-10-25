@@ -16,7 +16,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, Any, Tuple, List, Optional
+from typing import Any
 
 # Ensure project root is in sys.path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -25,6 +25,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 import joblib
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -32,9 +33,8 @@ import pandas as pd
 import shap
 
 from src.preprocessing import (
-    validate_input_schema,
     ALL_FEATURE_COLUMNS,
-    TARGET_COLUMN,
+    validate_input_schema,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -53,7 +53,7 @@ class ClinicalSHAPExplainer:
     exact TreeExplainer Shapley values.
     """
 
-    def __init__(self, pipeline_path: Optional[Path] = None, train_data_path: Optional[Path] = None):
+    def __init__(self, pipeline_path: Path | None = None, train_data_path: Path | None = None):
         self.pipeline_path = pipeline_path or (MODELS_DIR / "tuned_pipeline.joblib")
         self.train_data_path = train_data_path or (PROCESSED_DATA_DIR / "train.csv")
 
@@ -92,7 +92,7 @@ class ClinicalSHAPExplainer:
 
     def explain_single_patient(
         self, patient_df: pd.DataFrame
-    ) -> Tuple[shap.Explanation, Dict[str, Any]]:
+    ) -> tuple[shap.Explanation, dict[str, Any]]:
         """
         Computes SHAP explanation and attribution summary for a single patient record.
         Returns the single explanation object and structured attribution dictionary.
@@ -148,13 +148,13 @@ def generate_global_shap_figures(
     explainer_engine: ClinicalSHAPExplainer,
     X_test: pd.DataFrame,
     output_dir: Path
-) -> Tuple[Path, Path, List[Dict[str, Any]]]:
+) -> tuple[Path, Path, list[dict[str, Any]]]:
     """Renders Beeswarm plot and Feature Importance bar chart across the test cohort."""
     output_dir.mkdir(parents=True, exist_ok=True)
     shap_values = explainer_engine.explain_dataset(X_test)
 
     # 1. Summary Beeswarm Plot
-    fig_bee = plt.figure(figsize=(9, 7), dpi=300)
+    plt.figure(figsize=(9, 7), dpi=300)
     shap.plots.beeswarm(shap_values, max_display=14, show=False)
     plt.title("SHAP Global Summary Beeswarm Plot (Test Cohort)", fontsize=13, fontweight="bold", pad=15)
     plt.tight_layout()
@@ -163,7 +163,7 @@ def generate_global_shap_figures(
     plt.close()
 
     # 2. Global Feature Importance (Mean Absolute SHAP)
-    fig_bar = plt.figure(figsize=(8.5, 6), dpi=300)
+    plt.figure(figsize=(8.5, 6), dpi=300)
     shap.plots.bar(shap_values, max_display=14, show=False)
     plt.title("SHAP Global Feature Importance (Mean |SHAP Value|)", fontsize=13, fontweight="bold", pad=15)
     plt.tight_layout()
@@ -185,7 +185,7 @@ def generate_case_studies(
     explainer_engine: ClinicalSHAPExplainer,
     test_df: pd.DataFrame,
     output_dir: Path
-) -> Tuple[Path, Path]:
+) -> tuple[Path, Path]:
     """Generates two illustrative patient waterfall case studies: High-Risk and Low-Risk."""
     # Find a high-risk positive case with cardinal symptoms
     high_risk_candidates = test_df[
@@ -225,15 +225,15 @@ def generate_case_studies(
 
 
 def compile_xai_markdown_report(
-    ranking: List[Dict[str, Any]],
+    ranking: list[dict[str, Any]],
     report_file: Path = REPORT_PATH
 ) -> Path:
     """Compiles the XAI and SHAP analysis report with physiological explanations."""
-    top_feature = ranking[0]["feature"]
-    second_feature = ranking[1]["feature"]
-    third_feature = ranking[2]["feature"]
+    ranking[0]["feature"]
+    ranking[1]["feature"]
+    ranking[2]["feature"]
 
-    md = f"""# Explainable AI (XAI) & Model Interpretability Report
+    md = """# Explainable AI (XAI) & Model Interpretability Report
 ## SHAP (SHapley Additive exPlanations) Analysis
 
 **Methodology**: Game-Theoretic Shapley Value Decomposition via `TreeExplainer`  
@@ -277,7 +277,7 @@ The global ranking below reflects the **mean absolute SHAP value** ($E[|\\phi_i|
 
         md += f"| **{i}** | **{feat}** | **{score:.3f}** | {dir_effect} | {mech} |\n"
 
-    md += f"""
+    md += """
 ---
 
 ## 2. Global Distribution Visualizations
@@ -341,7 +341,7 @@ def run_explainability_pipeline() -> None:
     X_test = test_df[ALL_FEATURE_COLUMNS]
 
     print("[2/4] Generating global beeswarm and feature importance plots...")
-    bee_path, bar_path, ranking = generate_global_shap_figures(explainer, X_test, FIGURES_DIR)
+    _bee_path, _bar_path, ranking = generate_global_shap_figures(explainer, X_test, FIGURES_DIR)
     print(f"[+] Saved global plots to {FIGURES_DIR}")
 
     print("[3/4] Generating local patient waterfall case studies...")

@@ -7,8 +7,9 @@ Direct URL: https://archive.ics.uci.edu/static/public/529/early+stage+diabetes+r
 import io
 import os
 import sys
-import zipfile
 import urllib.request
+import zipfile
+
 import pandas as pd
 
 UCI_ZIP_URL = "https://archive.ics.uci.edu/static/public/529/early+stage+diabetes+risk+prediction+dataset.zip"
@@ -58,6 +59,6 @@ if __name__ == "__main__":
     try:
         csv_path = download_and_extract_data()
         verify_dataset(csv_path)
-    except Exception as e:
+    except (OSError, ValueError, urllib.error.URLError) as e:
         print(f"[-] Error downloading dataset: {e}", file=sys.stderr)
         sys.exit(1)

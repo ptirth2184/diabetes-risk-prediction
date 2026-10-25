@@ -11,22 +11,22 @@ Architectural Guarantees:
 import json
 import logging
 from pathlib import Path
-from typing import Tuple, List, Dict, Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, RobustScaler
+from sklearn.preprocessing import RobustScaler, StandardScaler
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
 # Canonical Schema Definitions
-NUMERIC_FEATURES: List[str] = ["Age"]
+NUMERIC_FEATURES: list[str] = ["Age"]
 
-BINARY_SYMPTOM_FEATURES: List[str] = [
+BINARY_SYMPTOM_FEATURES: list[str] = [
     "Polyuria",
     "Polydipsia",
     "sudden weight loss",
@@ -43,15 +43,15 @@ BINARY_SYMPTOM_FEATURES: List[str] = [
     "Obesity",
 ]
 
-DEMOGRAPHIC_CATEGORICAL_FEATURES: List[str] = ["Gender"]
+DEMOGRAPHIC_CATEGORICAL_FEATURES: list[str] = ["Gender"]
 
-ALL_FEATURE_COLUMNS: List[str] = NUMERIC_FEATURES + DEMOGRAPHIC_CATEGORICAL_FEATURES + BINARY_SYMPTOM_FEATURES
+ALL_FEATURE_COLUMNS: list[str] = NUMERIC_FEATURES + DEMOGRAPHIC_CATEGORICAL_FEATURES + BINARY_SYMPTOM_FEATURES
 TARGET_COLUMN: str = "class"
 
-TARGET_MAPPING: Dict[str, int] = {"Negative": 0, "Positive": 1}
-INVERSE_TARGET_MAPPING: Dict[int, str] = {0: "Negative", 1: "Positive"}
+TARGET_MAPPING: dict[str, int] = {"Negative": 0, "Positive": 1}
+INVERSE_TARGET_MAPPING: dict[int, str] = {0: "Negative", 1: "Positive"}
 
-BINARY_VALUE_MAPPING: Dict[str, int] = {
+BINARY_VALUE_MAPPING: dict[str, int] = {
     "no": 0,
     "yes": 1,
     "n": 0,
@@ -62,7 +62,7 @@ BINARY_VALUE_MAPPING: Dict[str, int] = {
     "1": 1,
 }
 
-GENDER_VALUE_MAPPING: Dict[str, int] = {
+GENDER_VALUE_MAPPING: dict[str, int] = {
     "male": 0,
     "female": 1,
     "m": 0,
@@ -76,11 +76,11 @@ class ClinicalBinaryEncoder(BaseEstimator, TransformerMixin):
     Handles case-insensitivity, whitespace trimming, and string/numeric types.
     """
 
-    def __init__(self, mapping: Optional[Dict[str, int]] = None):
+    def __init__(self, mapping: dict[str, int] | None = None):
         self.mapping = mapping if mapping is not None else BINARY_VALUE_MAPPING
-        self.feature_names_in_: Optional[List[str]] = None
+        self.feature_names_in_: list[str] | None = None
 
-    def fit(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> "ClinicalBinaryEncoder":
+    def fit(self, X: pd.DataFrame, y: pd.Series | None = None) -> "ClinicalBinaryEncoder":
         if isinstance(X, pd.DataFrame):
             self.feature_names_in_ = list(X.columns)
         return self
@@ -105,7 +105,7 @@ class ClinicalBinaryEncoder(BaseEstimator, TransformerMixin):
 
         return transformed.to_numpy()
 
-    def get_feature_names_out(self, input_features: Optional[List[str]] = None) -> np.ndarray:
+    def get_feature_names_out(self, input_features: list[str] | None = None) -> np.ndarray:
         if input_features is not None:
             return np.array(input_features, dtype=object)
         if self.feature_names_in_ is not None:
@@ -162,9 +162,8 @@ def validate_input_schema(df: pd.DataFrame, is_inference: bool = False) -> pd.Da
     if missing_features:
         raise ValueError(f"Input data is missing required feature columns: {missing_features}")
 
-    if not is_inference:
-        if TARGET_COLUMN not in cleaned_df.columns:
-            raise ValueError(f"Target column '{TARGET_COLUMN}' is required for training data.")
+    if not is_inference and TARGET_COLUMN not in cleaned_df.columns:
+        raise ValueError(f"Target column '{TARGET_COLUMN}' is required for training data.")
 
     # Validate Age boundaries
     if (cleaned_df["Age"] <= 0).any() or (cleaned_df["Age"] > 120).any():
@@ -177,7 +176,7 @@ def prepare_data_splits(
     raw_df: pd.DataFrame,
     test_size: float = 0.2,
     random_state: int = 42
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """
     Performs stratified train/test split.
     Guarantees consistent target class ratios in both partitions.
@@ -215,7 +214,7 @@ def export_processed_data(
     y_train: pd.Series,
     y_test: pd.Series,
     output_dir: Path
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Persists train/test splits and dataset metadata into data/processed/.
     """
@@ -250,13 +249,13 @@ def export_processed_data(
         },
         "dataset_splits": {
             "train": {
-                "total_samples": int(len(train_df)),
+                "total_samples": len(train_df),
                 "positive_count": int((y_train == 1).sum()),
                 "negative_count": int((y_train == 0).sum()),
                 "positive_ratio": float(y_train.mean()),
             },
             "test": {
-                "total_samples": int(len(test_df)),
+                "total_samples": len(test_df),
                 "positive_count": int((y_test == 1).sum()),
                 "negative_count": int((y_test == 0).sum()),
                 "positive_ratio": float(y_test.mean()),
@@ -294,7 +293,7 @@ def run_pipeline() -> None:
     print(f"[+] Transformed test split without leakage ({X_test_trans.shape[0]}x{X_test_trans.shape[1]}).")
     print(f"[+] Transformed feature names: {list(feature_names)}")
 
-    manifest = export_processed_data(X_train, X_test, y_train, y_test, processed_dir)
+    export_processed_data(X_train, X_test, y_train, y_test, processed_dir)
     print(f"[+] Processed splits and manifest saved to {processed_dir}.")
     print("=" * 60)
     print("PHASE 4 COMPLETE: Preprocessing module validated.")

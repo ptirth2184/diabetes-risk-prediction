@@ -14,7 +14,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, Any, List, Tuple
+from typing import Any
 
 # Ensure project root is in sys.path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -23,6 +23,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 import joblib
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -51,7 +52,7 @@ REPORT_PATH = PROJECT_ROOT / "reports" / "model_benchmarking_report.md"
 
 def plot_benchmark_comparison(benchmark_df: pd.DataFrame, output_dir: Path) -> Path:
     """Generates a multi-metric comparative bar chart across all 5 benchmarked models."""
-    fig, ax = plt.subplots(figsize=(10, 5.5), dpi=300)
+    _fig, ax = plt.subplots(figsize=(10, 5.5), dpi=300)
 
     models = benchmark_df["Model"].values
     x = np.arange(len(models))
@@ -97,7 +98,7 @@ def plot_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray, output_dir: Pa
         [f"False Neg (FN)\n{fn}\n({fn/(fn+tp):.1%})", f"True Pos (TP)\n{tp}\n({tp/(fn+tp):.1%})"]
     ])
 
-    fig, ax = plt.subplots(figsize=(6.5, 5.5), dpi=300)
+    _fig, ax = plt.subplots(figsize=(6.5, 5.5), dpi=300)
     sns.heatmap(
         cm, annot=labels, fmt="", cmap="Blues", cbar=False,
         xticklabels=["Predicted Negative", "Predicted Positive"],
@@ -119,7 +120,7 @@ def plot_roc_and_pr_curves(
     y_prob: np.ndarray,
     optimal_threshold: float,
     output_dir: Path
-) -> Tuple[Path, Path]:
+) -> tuple[Path, Path]:
     """Generates publication-quality ROC and Precision-Recall curves."""
     fpr, tpr, roc_thresholds = roc_curve(y_true, y_prob)
     roc_auc_val = auc(fpr, tpr)
@@ -130,7 +131,7 @@ def plot_roc_and_pr_curves(
     opt_tpr = tpr[idx_opt]
 
     # ROC Curve
-    fig, ax = plt.subplots(figsize=(7, 6), dpi=300)
+    _fig, ax = plt.subplots(figsize=(7, 6), dpi=300)
     ax.plot(fpr, tpr, color="#2b5c8f", lw=2.5, label=f"ROC Curve (AUC = {roc_auc_val:.4f})")
     ax.plot([0, 1], [0, 1], color="#999999", lw=1.2, linestyle="--", label="Random Classifier (AUC = 0.50)")
     ax.scatter(opt_fpr, opt_tpr, color="#d95f02", s=90, zorder=5, label=f"Optimal Threshold ({optimal_threshold:.2f})\nSens: {opt_tpr:.1%}, Spec: {1-opt_fpr:.1%}")
@@ -149,10 +150,10 @@ def plot_roc_and_pr_curves(
     plt.close()
 
     # PR Curve
-    precision, recall, pr_thresholds = precision_recall_curve(y_true, y_prob)
+    precision, recall, _pr_thresholds = precision_recall_curve(y_true, y_prob)
     pr_auc_val = auc(recall, precision)
 
-    fig, ax = plt.subplots(figsize=(7, 6), dpi=300)
+    _fig, ax = plt.subplots(figsize=(7, 6), dpi=300)
     ax.plot(recall, precision, color="#d95f02", lw=2.5, label=f"PR Curve (AP = {pr_auc_val:.4f})")
     no_skill = (y_true == 1).sum() / len(y_true)
     ax.axhline(no_skill, color="#999999", lw=1.2, linestyle="--", label=f"Baseline Prevalence ({no_skill:.1%})")
@@ -186,7 +187,7 @@ def plot_calibration_curve(
     brier_cal = brier_score_loss(y_true, y_prob_calibrated)
     brier_raw = brier_score_loss(y_true, y_prob_raw)
 
-    fig, (ax_curve, ax_hist) = plt.subplots(
+    _fig, (ax_curve, ax_hist) = plt.subplots(
         2, 1, figsize=(7.5, 7), sharex=True, gridspec_kw={"height_ratios": [0.7, 0.3]}, dpi=300
     )
 
@@ -217,7 +218,7 @@ def plot_calibration_curve(
 
 def generate_benchmark_report(
     benchmark_df: pd.DataFrame,
-    metadata: Dict[str, Any],
+    metadata: dict[str, Any],
     report_path: Path = REPORT_PATH
 ) -> Path:
     """Compiles a detailed model benchmark & evaluation markdown report."""

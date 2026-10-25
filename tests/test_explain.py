@@ -3,6 +3,7 @@ Unit tests for Explainable AI (XAI) and SHAP explainability module.
 """
 
 from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

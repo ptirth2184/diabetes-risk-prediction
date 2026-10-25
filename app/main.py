@@ -19,18 +19,16 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import streamlit as st
 
 from app.utils import (
-    load_all_artifacts,
-    load_benchmark_and_test_data,
+    FIGURES_DIR,
     categorize_risk,
     get_custom_css,
-    FIGURES_DIR,
+    load_all_artifacts,
+    load_benchmark_and_test_data,
 )
-from src.preprocessing import ALL_FEATURE_COLUMNS
 
 # Page Configuration
 st.set_page_config(
@@ -47,10 +45,10 @@ st.markdown(get_custom_css(), unsafe_allow_html=True)
 def main():
     # Load model and XAI resources
     try:
-        model, metadata, explainer, shap_ranking = load_all_artifacts()
-        benchmark_df, test_df = load_benchmark_and_test_data()
+        model, metadata, explainer, _shap_ranking = load_all_artifacts()
+        benchmark_df, _test_df = load_benchmark_and_test_data()
         optimal_thresh = float(metadata.get("optimal_threshold", 0.320))
-    except Exception as e:
+    except (FileNotFoundError, OSError, ValueError, KeyError) as e:
         st.error(f"Error loading model artifacts: {e}. Please ensure Phase 4 through 7 have been run.")
         st.stop()
 
@@ -83,10 +81,10 @@ def main():
         st.markdown("---")
         st.markdown("### 📊 Model Telemetry")
         st.markdown(f"**Algorithm**: `{metadata.get('algorithm', 'Gradient Boosting')}`")
-        st.markdown(f"**Calibration**: `Sigmoid Platt Scaling`")
+        st.markdown("**Calibration**: `Sigmoid Platt Scaling`")
         st.markdown(f"**Decision Threshold**: `θ = {optimal_thresh:.3f}`")
-        st.markdown(f"**Test ROC-AUC**: `1.0000`")
-        st.markdown(f"**Test Specificity**: `100.0%`")
+        st.markdown("**Test ROC-AUC**: `1.0000`")
+        st.markdown("**Test Specificity**: `100.0%`")
 
         st.markdown("---")
         st.markdown("### 📚 Data Provenance")

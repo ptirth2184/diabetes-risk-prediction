@@ -2,21 +2,18 @@
 Unit tests for data preprocessing, schema validation, and leak-free transformations.
 """
 
-from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
 from sklearn.preprocessing import StandardScaler
 
 from src.preprocessing import (
+    ALL_FEATURE_COLUMNS,
+    BINARY_VALUE_MAPPING,
     ClinicalBinaryEncoder,
     build_preprocessing_pipeline,
-    validate_input_schema,
     prepare_data_splits,
-    ALL_FEATURE_COLUMNS,
-    TARGET_COLUMN,
-    BINARY_VALUE_MAPPING,
-    GENDER_VALUE_MAPPING,
+    validate_input_schema,
 )
 
 
@@ -107,7 +104,7 @@ def test_stratified_split_preserves_ratios(sample_raw_dataframe):
 
 def test_zero_data_leakage_in_preprocessing_pipeline(sample_raw_dataframe):
     """Verifies that the ColumnTransformer calculates scaler parameters strictly on X_train."""
-    X_train, X_test, y_train, y_test = prepare_data_splits(
+    X_train, X_test, _y_train, _y_test = prepare_data_splits(
         sample_raw_dataframe, test_size=0.4, random_state=42
     )
 

@@ -19,7 +19,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, Any, Tuple, List
+from typing import Any
 
 # Ensure project root is in sys.path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -29,17 +29,15 @@ if str(PROJECT_ROOT) not in sys.path:
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.calibration import CalibratedClassifierCV, calibration_curve
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
-    balanced_accuracy_score,
     brier_score_loss,
     confusion_matrix,
     f1_score,
     fbeta_score,
-    precision_recall_curve,
     precision_score,
     recall_score,
     roc_auc_score,
@@ -55,11 +53,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import SVC
 
 from src.preprocessing import (
-    build_preprocessing_pipeline,
-    prepare_data_splits,
-    validate_input_schema,
     ALL_FEATURE_COLUMNS,
     TARGET_COLUMN,
+    build_preprocessing_pipeline,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -71,7 +67,7 @@ MODELS_DIR = PROJECT_ROOT / "models"
 REPORTS_DIR = PROJECT_ROOT / "reports"
 
 
-def get_candidate_models() -> Dict[str, Any]:
+def get_candidate_models() -> dict[str, Any]:
     """Returns the set of candidate classification estimators."""
     return {
         "Logistic Regression": LogisticRegression(
@@ -113,7 +109,7 @@ def benchmark_models(
     cv_splits: int = 5,
     cv_repeats: int = 3,
     random_state: int = 42
-) -> Tuple[pd.DataFrame, Dict[str, Pipeline]]:
+) -> tuple[pd.DataFrame, dict[str, Pipeline]]:
     """
     Evaluates candidate models within leak-free pipelines using Repeated Stratified K-Fold CV.
     """
@@ -234,7 +230,7 @@ def find_optimal_threshold(
     y_true: np.ndarray,
     y_prob: np.ndarray,
     beta: float = 2.0
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Finds optimal decision threshold balancing clinical sensitivity vs specificity.
     Evaluates:
@@ -276,7 +272,7 @@ def calibrate_and_fit_final_pipeline(
     X_test: pd.DataFrame,
     y_test: pd.Series,
     random_state: int = 42
-) -> Tuple[Pipeline, Dict[str, Any]]:
+) -> tuple[Pipeline, dict[str, Any]]:
     """
     Fits and wraps the model with CalibratedClassifierCV.
     Finds the optimal clinical threshold and computes holdout test metrics.
@@ -337,7 +333,7 @@ def calibrate_and_fit_final_pipeline(
 def save_model_artifacts(
     calibrated_model: Any,
     raw_tuned_pipeline: Pipeline,
-    metadata: Dict[str, Any],
+    metadata: dict[str, Any],
     benchmark_df: pd.DataFrame,
     output_dir: Path = MODELS_DIR
 ) -> None:
@@ -359,7 +355,7 @@ def save_model_artifacts(
     logger.info(f"Model artifacts successfully serialized to: {output_dir}")
 
 
-def run_training_pipeline() -> Tuple[pd.DataFrame, Dict[str, Any]]:
+def run_training_pipeline() -> tuple[pd.DataFrame, dict[str, Any]]:
     """Runs Phase 5 & 6 end-to-end."""
     print("=" * 60)
     print("PHASES 5 & 6: MODEL BENCHMARK, TUNING, CALIBRATION & THRESHOLDING")
