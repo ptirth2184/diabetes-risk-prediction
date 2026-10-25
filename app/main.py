@@ -6,8 +6,6 @@ Features:
 2. Calibrated Probability & Risk Tier Categorization (Low, Moderate, High).
 3. Live Patient-Level Explainability (SHAP Waterfall Plot).
 4. Interactive What-If Scenario Factor Simulator.
-5. Model Telemetry, Diagnostic Curves & Global Explainability.
-6. Dataset Insights & Epidemiological Risk Indicators.
 """
 
 import sys
@@ -23,11 +21,9 @@ import pandas as pd
 import streamlit as st
 
 from app.utils import (
-    FIGURES_DIR,
     categorize_risk,
     get_custom_css,
     load_all_artifacts,
-    load_benchmark_and_test_data,
 )
 
 # Page Configuration
@@ -46,7 +42,6 @@ def main():
     # Load model and XAI resources
     try:
         model, metadata, explainer, _shap_ranking = load_all_artifacts()
-        benchmark_df, _test_df = load_benchmark_and_test_data()
         optimal_thresh = float(metadata.get("optimal_threshold", 0.320))
     except (FileNotFoundError, OSError, ValueError, KeyError) as e:
         st.error(f"Error loading model artifacts: {e}. Please ensure Phase 4 through 7 have been run.")
@@ -147,12 +142,10 @@ def main():
         st.session_state["current_preset"] = preset
         st.session_state["evaluated"] = False  # Require user to click submit for the new preset
 
-    # Main Navigation Tabs
-    tab1, tab2, tab3, tab4 = st.tabs([
+    # Main Navigation Tabs: Focused Clinical Workflow
+    tab1, tab2 = st.tabs([
         "🔬 Clinical Screening & SHAP Diagnosis",
         "⚡ What-If Factor Simulator",
-        "📈 Model Benchmark & Telemetry",
-        "📖 Population Insights & Epidemiology",
     ])
 
     # ==========================================
@@ -397,86 +390,6 @@ def main():
                 <div style="margin-top: 10px;"><span class="{sim_badge}">{sim_cat}</span></div>
             </div>
             """, unsafe_allow_html=True)
-
-    # ==========================================
-    # TAB 3: Model Benchmark & Diagnostic Telemetry
-    # ==========================================
-    with tab3:
-        st.markdown("### 📈 Model Benchmarking, Calibration & Clinical Validation")
-        st.markdown(
-            "Evaluation across 5 candidate architectures via Repeated Stratified 5-Fold Cross Validation and Holdout Test Partition."
-        )
-
-        # KPI Metrics Cards
-        kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
-        with kpi1:
-            st.markdown("""<div class="metric-card"><div class="metric-label">Holdout Sensitivity</div><div class="metric-value" style="color: #2e7d32;">98.4%</div></div>""", unsafe_allow_html=True)
-        with kpi2:
-            st.markdown("""<div class="metric-card"><div class="metric-label">Holdout Specificity</div><div class="metric-value" style="color: #1d4e89;">100.0%</div></div>""", unsafe_allow_html=True)
-        with kpi3:
-            st.markdown("""<div class="metric-card"><div class="metric-label">Holdout ROC-AUC</div><div class="metric-value">1.0000</div></div>""", unsafe_allow_html=True)
-        with kpi4:
-            st.markdown("""<div class="metric-card"><div class="metric-label">Brier Loss (Calib)</div><div class="metric-value">0.0120</div></div>""", unsafe_allow_html=True)
-        with kpi5:
-            st.markdown(f"""<div class="metric-card"><div class="metric-label">Optimal Threshold</div><div class="metric-value">{optimal_thresh:.3f}</div></div>""", unsafe_allow_html=True)
-
-        if not benchmark_df.empty:
-            st.markdown("#### 🏆 Repeated Stratified 5-Fold CV Benchmark (15 Runs per Model)")
-            st.dataframe(
-                benchmark_df[["Model", "Recall_Mean", "Precision_Mean", "F1_Mean", "ROC_AUC_Mean", "Balanced_Acc_Mean"]].style.format({
-                    "Recall_Mean": "{:.1%}", "Precision_Mean": "{:.1%}", "F1_Mean": "{:.1%}",
-                    "ROC_AUC_Mean": "{:.4f}", "Balanced_Acc_Mean": "{:.1%}"
-                }),
-                use_container_width=True
-            )
-
-        # Clinical Diagnostic Curves
-        c_roc, c_pr = st.columns(2)
-        with c_roc:
-            roc_img = FIGURES_DIR / "roc_curve.png"
-            if roc_img.exists():
-                st.image(str(roc_img), caption="Receiver Operating Characteristic (ROC) Curve")
-        with c_pr:
-            pr_img = FIGURES_DIR / "precision_recall_curve.png"
-            if pr_img.exists():
-                st.image(str(pr_img), caption="Precision-Recall (PR) Curve")
-
-        c_cm, c_cal = st.columns(2)
-        with c_cm:
-            cm_img = FIGURES_DIR / "confusion_matrix.png"
-            if cm_img.exists():
-                st.image(str(cm_img), caption="Annotated Holdout Confusion Matrix (Optimal Threshold θ=0.320)")
-        with c_cal:
-            cal_img = FIGURES_DIR / "calibration_curve.png"
-            if cal_img.exists():
-                st.image(str(cal_img), caption="Reliability Diagram (Sigmoid Calibration vs Uncalibrated Model)")
-
-    # ==========================================
-    # TAB 4: Population Insights & Epidemiology
-    # ==========================================
-    with tab4:
-        st.markdown("### 📖 Population Statistics & Epidemiological Risk Indicators")
-        st.markdown("Insights from the 520 patient outpatient cohort from Sylhet Diabetes Hospital.")
-
-        c_odds, c_prev = st.columns(2)
-        with c_odds:
-            odds_img = FIGURES_DIR / "feature_odds_ratios.png"
-            if odds_img.exists():
-                st.image(str(odds_img), caption="Epidemiological Odds Ratios (95% Wald CI)")
-        with c_prev:
-            prev_img = FIGURES_DIR / "symptom_prevalence_comparison.png"
-            if prev_img.exists():
-                st.image(str(prev_img), caption="Symptom Prevalence Comparison: Positive vs. Negative Cohorts")
-
-        c_bee, c_imp = st.columns(2)
-        with c_bee:
-            bee_img = FIGURES_DIR / "shap_summary_beeswarm.png"
-            if bee_img.exists():
-                st.image(str(bee_img), caption="SHAP Global Beeswarm Summary Plot")
-        with c_imp:
-            imp_img = FIGURES_DIR / "shap_feature_importance_bar.png"
-            if imp_img.exists():
-                st.image(str(imp_img), caption="SHAP Global Feature Importance (Mean |SHAP|)")
 
     # Footer Medical Disclaimer
     st.markdown("""
