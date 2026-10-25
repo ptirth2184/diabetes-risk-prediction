@@ -16,8 +16,9 @@ env/
 */.ipynb_checkpoints/*
 
 # Model files & data artifacts
-# (Keep raw data tracked if small, ignore large cache or local exports)
-models/*.joblib
+# Track trained model joblib files (they are lightweight <3MB)
+# models/*.joblib
+!models/*.joblib
 !models/.gitkeep
 
 # Testing & Coverage
