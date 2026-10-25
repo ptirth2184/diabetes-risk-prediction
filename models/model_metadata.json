@@ -1,0 +1,75 @@
+{
+    "algorithm": "Gradient Boosting",
+    "calibrated": true,
+    "calibration_method": "sigmoid",
+    "optimal_threshold": 0.32,
+    "features": [
+        "Age",
+        "Gender",
+        "Polyuria",
+        "Polydipsia",
+        "sudden weight loss",
+        "weakness",
+        "Polyphagia",
+        "Genital thrush",
+        "visual blurring",
+        "Itching",
+        "Irritability",
+        "delayed healing",
+        "partial paresis",
+        "muscle stiffness",
+        "Alopecia",
+        "Obesity"
+    ],
+    "train_samples": 416,
+    "test_samples": 104,
+    "metrics": {
+        "default_threshold": 0.5,
+        "optimal_threshold": 0.32,
+        "test_eval_default_0_5": {
+            "accuracy": 0.9903846153846154,
+            "recall": 0.984375,
+            "precision": 1.0,
+            "f1": 0.9921259842519685,
+            "f2": 0.987460815047022,
+            "roc_auc": 1.0,
+            "brier_score": 0.012039153790339006,
+            "confusion_matrix": [
+                [
+                    40,
+                    0
+                ],
+                [
+                    1,
+                    63
+                ]
+            ]
+        },
+        "test_eval_optimal_thresh": {
+            "accuracy": 0.9903846153846154,
+            "recall": 0.984375,
+            "precision": 1.0,
+            "f1": 0.9921259842519685,
+            "f2": 0.987460815047022,
+            "roc_auc": 1.0,
+            "brier_score": 0.012039153790339006,
+            "confusion_matrix": [
+                [
+                    40,
+                    0
+                ],
+                [
+                    1,
+                    63
+                ]
+            ]
+        },
+        "threshold_optimization_details": {
+            "youden_threshold": 0.7247292678276838,
+            "youden_j_score": 1.0,
+            "f_beta_threshold": 0.32,
+            "max_f_beta": 1.0,
+            "selected_clinical_threshold": 0.32
+        }
+    }
+}

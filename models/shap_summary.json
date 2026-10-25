@@ -1,0 +1,66 @@
+[
+    {
+        "feature": "Polyuria",
+        "mean_abs_shap": 3.0137531439380174
+    },
+    {
+        "feature": "Polydipsia",
+        "mean_abs_shap": 2.570890224384985
+    },
+    {
+        "feature": "Gender",
+        "mean_abs_shap": 1.751047169448699
+    },
+    {
+        "feature": "sudden weight loss",
+        "mean_abs_shap": 0.8448255935914835
+    },
+    {
+        "feature": "Age",
+        "mean_abs_shap": 0.8081831537769438
+    },
+    {
+        "feature": "Polyphagia",
+        "mean_abs_shap": 0.7237423384537645
+    },
+    {
+        "feature": "Irritability",
+        "mean_abs_shap": 0.5654685872587394
+    },
+    {
+        "feature": "Itching",
+        "mean_abs_shap": 0.4563097537800332
+    },
+    {
+        "feature": "Alopecia",
+        "mean_abs_shap": 0.43765845252058005
+    },
+    {
+        "feature": "delayed healing",
+        "mean_abs_shap": 0.3286902138099992
+    },
+    {
+        "feature": "Genital thrush",
+        "mean_abs_shap": 0.27173580079874304
+    },
+    {
+        "feature": "muscle stiffness",
+        "mean_abs_shap": 0.24304772054930826
+    },
+    {
+        "feature": "partial paresis",
+        "mean_abs_shap": 0.19464290687772018
+    },
+    {
+        "feature": "weakness",
+        "mean_abs_shap": 0.14291114755227183
+    },
+    {
+        "feature": "Obesity",
+        "mean_abs_shap": 0.11789611252085277
+    },
+    {
+        "feature": "visual blurring",
+        "mean_abs_shap": 0.10166633449584396
+    }
+]
